@@ -1,0 +1,78 @@
+services:
+  app:
+    build:
+      args:
+        user: dani
+        uid: 1000
+      context: ./
+      dockerfile: Dockerfile
+    image: car-wash-booking
+    container_name: car-wash-booking-app
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - app_data:/var/www
+    networks:
+      - car-wash-booking
+    depends_on:
+      db:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:alpine
+    container_name: car-wash-booking-nginx
+    restart: unless-stopped
+    ports:
+      - "8001:80"
+    volumes:
+      - app_data:/var/www
+      - ./docker-compose/nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - car-wash-booking
+
+  db:
+    image: mysql:8.0
+    container_name: car-wash-booking-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    ports:
+      - "3311:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./docker-compose/mysql:/docker-entrypoint-initdb.d
+    networks:
+      - car-wash-booking
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$MYSQL_USER", "-p$$MYSQL_PASSWORD" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  vite:
+    image: node:22
+    container_name: car-wash-booking-vite
+    restart: unless-stopped
+    working_dir: /var/www/
+    command: npm run dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - app_data:/var/www
+    networks:
+      - car-wash-booking
+
+volumes:
+  app_data:
+    name: car_wash_booking_app_data
+  db_data:
+    name: car_wash_booking_db_data
+
+networks:
+  car-wash-booking:
+    driver: bridge
