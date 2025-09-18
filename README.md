@@ -2,6 +2,10 @@
 
 A modern car wash booking management system built with Laravel 12. This application allows customers to book car wash services online, while providing administrators with tools to manage bookings, services, and time slots efficiently.
 
+## Entity-Relationship Diagrams (ERD)
+
+-   [dbdiagram](https://dbdiagram.io/d/car-wash-booking-68cb76e15779bb7265ff3f28)
+
 ## Features
 
 -   🚗 **Vehicle Management**: Store and manage multiple vehicles per user
